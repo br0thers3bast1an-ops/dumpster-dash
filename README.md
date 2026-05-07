@@ -1,6 +1,6 @@
 A Sega Genesis-style endless desert racing game built entirely in vanilla HTML/CSS/JS.
 
-Play it: [https://yourusername.github.io/dumpster-dash](https://br0thers3bast1an-ops.github.io/dumpster-dash/)
+Play it: [https://br0thers3bast1an-ops.github.io/dumpster-dash/]
 
 Controls,
 | Key | Action |
