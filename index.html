@@ -79,57 +79,138 @@ html,body{
   pointer-events:none;z-index:10;
 }
 
-/* TOUCH CONTROLS */
+/* TOUCH CONTROLS - redesigned for mobile */
 #tctrl{
   position:absolute;bottom:0;left:0;right:0;
-  height:clamp(80px,18vh,130px);
-  display:flex;align-items:center;
+  height:clamp(110px,24vw,160px);
+  display:flex;align-items:flex-end;
   justify-content:space-between;
-  padding:8px clamp(6px,2vw,16px);
-  gap:clamp(4px,1.5vw,10px);
-  background:linear-gradient(transparent,rgba(0,0,0,0.7));
+  padding:0 clamp(8px,3vw,20px) clamp(8px,2vw,14px);
+  background:linear-gradient(transparent,rgba(0,0,0,0.82));
   z-index:10;
+  pointer-events:none;
 }
-/* Layout: [LEFT] [GAS (big)] [RIGHT] [FIRE] */
+/* Left side: D-pad cluster */
+#dpad{
+  pointer-events:auto;
+  display:grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap:5px;
+  width:clamp(150px,36vw,210px);
+  height:clamp(90px,22vw,132px);
+}
+/* Right side: Gas + Fire stacked */
+#rpad{
+  pointer-events:auto;
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+  width:clamp(100px,26vw,150px);
+  height:clamp(90px,22vw,132px);
+}
 .tbtn{
-  height:100%;
-  background:rgba(0,0,0,0.55);
+  background:rgba(0,0,0,0.60);
   border:2px solid rgba(0,255,255,0.5);
-  border-radius:8px;
+  border-radius:10px;
   color:#0ff;
   font-family:'Courier New',monospace;
-  font-size:clamp(10px,2.2vw,15px);
+  font-size:clamp(9px,2vw,14px);
   font-weight:bold;
   display:flex;align-items:center;justify-content:center;
   cursor:pointer;
-  letter-spacing:1px;
   touch-action:none;
   -webkit-tap-highlight-color:transparent;
-  transition:background 0.06s;
+  transition:background 0.06s, border-color 0.06s;
   user-select:none;
-  flex:1;
+  flex-direction:column;
+  gap:2px;
+  min-width:0;
 }
-.tbtn:active,.tbtn.pressed{background:rgba(0,255,255,0.28);border-color:#0ff;}
+.tbtn:active,.tbtn.pressed{background:rgba(0,255,255,0.28);border-color:#0ff;box-shadow:0 0 8px rgba(0,255,255,0.4);}
 
-#tbtnLeft,#tbtnRight{flex:1.1;}
-#tbtnLeft span,#tbtnRight span{font-size:clamp(18px,4vw,32px);}
+/* D-pad button arrow icons */
+.tbtn .bicon{font-size:clamp(16px,4.5vw,28px);line-height:1;}
+.tbtn .blabel{font-size:clamp(7px,1.5vw,10px);letter-spacing:0.5px;opacity:0.8;}
 
+/* D-pad layout: [LEFT] empty  [RIGHT] / [BRAKE] [GAS-small] empty */
+#tbtnLeft{ grid-column:1; grid-row:1; border-color:rgba(0,255,255,0.5); }
+#tbtnRight{ grid-column:3; grid-row:1; border-color:rgba(0,255,255,0.5); }
+#tbtnBrake{ grid-column:1; grid-row:2; border-color:rgba(255,200,0,0.5); color:#ffd700; }
+#tbtnBrake:active,#tbtnBrake.pressed{background:rgba(255,200,0,0.22);border-color:#ffd700;}
+
+/* Placeholder to keep grid shape */
+#dpadCenter{ grid-column:2; grid-row:1/3; background:rgba(0,0,0,0.2); border:2px solid rgba(255,255,255,0.07); border-radius:10px; display:flex;align-items:center;justify-content:center; color:rgba(255,255,255,0.12); font-size:clamp(7px,1.6vw,11px); font-family:'Courier New',monospace; }
+#dpadCorner{ grid-column:3; grid-row:2; background:transparent; border:none; }
+
+/* Right pad */
 #tbtnGas{
-  flex:2.2;
+  flex:1.5;
   border-color:rgba(80,255,80,0.65);
   color:#88ff88;
-  font-size:clamp(11px,2.5vw,17px);
 }
-#tbtnGas span{font-size:clamp(22px,5vw,38px);display:block;line-height:1;}
-#tbtnGas:active,#tbtnGas.pressed{background:rgba(80,255,80,0.22);border-color:#88ff88;}
-
+#tbtnGas:active,#tbtnGas.pressed{background:rgba(80,255,80,0.22);border-color:#88ff88;box-shadow:0 0 8px rgba(80,255,80,0.4);}
 #tbtnFire{
-  flex:1.4;
+  flex:1;
   border-color:rgba(255,80,0,0.65);
   color:#ff8800;
 }
-#tbtnFire span{font-size:clamp(18px,4vw,30px);}
-#tbtnFire:active,#tbtnFire.pressed{background:rgba(255,100,0,0.3);border-color:#ff8800;}
+#tbtnFire:active,#tbtnFire.pressed{background:rgba(255,100,0,0.3);border-color:#ff8800;box-shadow:0 0 8px rgba(255,100,0,0.4);}
+
+/* Leaderboard overlay */
+#lbOverlay{
+  position:absolute;top:0;left:0;width:100%;height:100%;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,8,24,0.96);z-index:25;color:#fff;
+  padding:clamp(10px,2vh,20px) clamp(12px,3vw,24px);
+  text-align:center;
+}
+#lbOverlay h2{
+  font-size:clamp(18px,5vw,34px);color:#ffcc00;
+  text-shadow:2px 2px 0 #c00;letter-spacing:3px;margin-bottom:8px;
+}
+#lbTable{
+  width:100%;max-width:400px;
+  border-collapse:collapse;
+  font-size:clamp(10px,2.2vw,15px);
+  margin:8px 0 12px 0;
+}
+#lbTable th{
+  color:#0ff;border-bottom:2px solid #0ff;
+  padding:4px 8px;font-size:clamp(9px,1.8vw,12px);letter-spacing:1px;
+}
+#lbTable td{
+  padding:5px 8px;border-bottom:1px solid rgba(255,255,255,0.08);
+  color:#ddd;
+}
+#lbTable tr:nth-child(1) td{color:#ffd700;font-weight:bold;}
+#lbTable tr:nth-child(2) td{color:#c0c0c0;}
+#lbTable tr:nth-child(3) td{color:#cd7f32;}
+#lbTable tr.highlight td{color:#0ff;background:rgba(0,255,255,0.07);}
+.lb-medal{font-size:1.1em;}
+#lbName{
+  background:rgba(0,0,0,0.6);border:2px solid #0ff;color:#0ff;
+  font-family:'Courier New',monospace;font-size:clamp(13px,3vw,18px);
+  padding:6px 14px;text-align:center;width:clamp(160px,40vw,240px);
+  outline:none;letter-spacing:2px;text-transform:uppercase;
+}
+#lbName::placeholder{color:rgba(0,255,255,0.35);}
+#lbSaveBtn,#lbCloseBtn,#lbViewBtn{
+  padding:clamp(8px,1.8vh,12px) clamp(18px,4vw,32px);
+  font-family:'Courier New',monospace;
+  font-size:clamp(11px,2.5vw,15px);
+  font-weight:bold;background:#000;
+  border:2px solid;cursor:pointer;letter-spacing:2px;margin:4px;
+}
+#lbSaveBtn{color:#0ff;border-color:#0ff;}
+#lbSaveBtn:hover{background:#0ff;color:#000;}
+#lbCloseBtn{color:#aaa;border-color:#555;}
+#lbCloseBtn:hover{background:#333;color:#fff;}
+#lbViewBtn{color:#ff0;border-color:#ff0;font-size:clamp(9px,1.8vw,12px);padding:4px 12px;}
+#lbViewBtn:hover{background:#ff0;color:#000;}
+.lb-empty{color:#555;font-style:italic;padding:16px;font-size:clamp(10px,2vw,13px);}
+#lbScoreDisplay{color:#ffcc00;font-size:clamp(14px,3.5vw,22px);margin:4px 0;text-shadow:1px 1px 0 #000;}
+#lbRankMsg{color:#aaddff;font-size:clamp(10px,2vw,14px);margin-bottom:8px;}
 
 /* OVERLAY (title / game over) */
 #ov{
@@ -220,10 +301,37 @@ html,body{
   </div>
   <div id="owarn">&#9888; OFF ROAD!</div>
   <div id="tctrl">
-    <div class="tbtn" id="tbtnLeft"><span>&#9664;</span></div>
-    <div class="tbtn" id="tbtnGas"><span>&#9650;</span>GAS</div>
-    <div class="tbtn" id="tbtnRight"><span>&#9654;</span></div>
-    <div class="tbtn" id="tbtnFire"><span>&#128640;</span>FIRE</div>
+    <!-- Left: D-pad cluster -->
+    <div id="dpad">
+      <div class="tbtn" id="tbtnLeft"><div class="bicon">&#9664;</div><div class="blabel">LEFT</div></div>
+      <div id="dpadCenter">STEER</div>
+      <div class="tbtn" id="tbtnRight"><div class="bicon">&#9654;</div><div class="blabel">RIGHT</div></div>
+      <div class="tbtn" id="tbtnBrake"><div class="bicon">&#9660;</div><div class="blabel">BRAKE</div></div>
+      <div id="dpadCorner"></div>
+    </div>
+    <!-- Right: Gas + Fire -->
+    <div id="rpad">
+      <div class="tbtn" id="tbtnGas"><div class="bicon">&#9650;</div><div class="blabel">GAS</div></div>
+      <div class="tbtn" id="tbtnFire"><div class="bicon">&#128640;</div><div class="blabel">FIRE</div></div>
+    </div>
+  </div>
+
+  <!-- Leaderboard overlay -->
+  <div id="lbOverlay">
+    <h2>&#127942; LEADERBOARD</h2>
+    <div id="lbScoreDisplay"></div>
+    <div id="lbRankMsg"></div>
+    <div id="lbNameRow" style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+      <input id="lbName" maxlength="12" placeholder="YOUR NAME" autocomplete="off" spellcheck="false"/>
+      <button id="lbSaveBtn">SAVE</button>
+    </div>
+    <table id="lbTable">
+      <thead><tr><th>#</th><th>NAME</th><th>SCORE</th><th>DIST</th><th>LVL</th></tr></thead>
+      <tbody id="lbBody"></tbody>
+    </table>
+    <div>
+      <button id="lbCloseBtn">PLAY AGAIN</button>
+    </div>
   </div>
   <div id="ov">
     <div>
@@ -243,6 +351,7 @@ html,body{
       <span><span class="ctrl-key">Down/S</span> brake</span>
     </div>
     <button id="startBtn">INSERT COIN</button>
+    <button id="lbViewBtn">&#127942; LEADERBOARD</button>
   </div>
 </div>
 
@@ -354,7 +463,7 @@ function startMusic(){
 document.getElementById('musicBtn').addEventListener('click',function(){musicOn=!musicOn;document.getElementById('musicBtn').textContent=musicOn?'\u266a ON':'\u266a OFF';if(AC)setMusicVol(musicOn);});
 
 // ── TOUCH CONTROLS ────────────────────────────────────────────
-var touch={left:false,right:false,gas:false,fire:false};
+var touch={left:false,right:false,gas:false,fire:false,brake:false};
 function bindBtn(id,key){
   var el=document.getElementById(id);
   function press(e){e.preventDefault();touch[key]=true;el.classList.add('pressed');}
@@ -370,6 +479,92 @@ bindBtn('tbtnLeft','left');
 bindBtn('tbtnRight','right');
 bindBtn('tbtnGas','gas');
 bindBtn('tbtnFire','fire');
+bindBtn('tbtnBrake','brake');
+
+// ── LEADERBOARD ───────────────────────────────────────────────
+var LB_KEY='dumpster_dash_lb_v1';
+var lbEntries=[];
+var pendingScore=null;
+
+function lbLoad(){
+  try{
+    var raw=localStorage.getItem(LB_KEY);
+    lbEntries=raw?JSON.parse(raw):[];
+  }catch(e){lbEntries=[];}
+}
+function lbSave(){
+  try{localStorage.setItem(LB_KEY,JSON.stringify(lbEntries));}catch(e){}
+}
+function lbAddEntry(name,score,dist,level){
+  var entry={name:(name||'UNKNOWN').toUpperCase().trim().substring(0,12),score:Math.floor(score),dist:Math.floor(dist),level:level,date:new Date().toLocaleDateString()};
+  lbEntries.push(entry);
+  lbEntries.sort(function(a,b){return b.score-a.score;});
+  if(lbEntries.length>20)lbEntries=lbEntries.slice(0,20);
+  lbSave();
+  return lbEntries.indexOf(entry)+1;
+}
+function lbGetRank(score){
+  var rank=1;
+  for(var i=0;i<lbEntries.length;i++){if(lbEntries[i].score>score)rank++;}
+  return rank;
+}
+var MEDALS=['🥇','🥈','🥉'];
+function lbRender(highlightName){
+  var tbody=document.getElementById('lbBody');
+  if(!lbEntries.length){tbody.innerHTML='<tr><td colspan="5" class="lb-empty">No scores yet — be the first!</td></tr>';return;}
+  var html='';
+  for(var i=0;i<lbEntries.length;i++){
+    var e=lbEntries[i];
+    var isHL=highlightName&&e.name===highlightName.toUpperCase().trim()&&i===lbEntries.indexOf(e);
+    var rankStr=i<3?MEDALS[i]:'#'+(i+1);
+    html+='<tr'+(isHL?' class="highlight"':'')+'><td>'+rankStr+'</td><td>'+e.name+'</td><td>'+e.score.toLocaleString()+'</td><td>'+e.dist+'m</td><td>'+e.level+'</td></tr>';
+  }
+  tbody.innerHTML=html;
+}
+function showLeaderboard(finalScore,finalDist,finalLevel){
+  lbLoad();
+  var lb=document.getElementById('lbOverlay');
+  var rank=lbGetRank(finalScore);
+  var scoreDisp=document.getElementById('lbScoreDisplay');
+  var rankMsg=document.getElementById('lbRankMsg');
+  var nameRow=document.getElementById('lbNameRow');
+  if(finalScore!==undefined){
+    scoreDisp.textContent='SCORE: '+Math.floor(finalScore).toLocaleString();
+    rankMsg.textContent='Rank #'+rank+' of '+(lbEntries.length+1)+' — Distance: '+Math.floor(finalDist)+'m  Level: '+finalLevel;
+    nameRow.style.display='flex';
+    pendingScore={score:finalScore,dist:finalDist,level:finalLevel};
+  }else{
+    scoreDisp.textContent='';rankMsg.textContent='';
+    nameRow.style.display='none';pendingScore=null;
+  }
+  lbRender(null);
+  lb.style.display='flex';
+}
+function hideLeaderboard(){
+  document.getElementById('lbOverlay').style.display='none';
+}
+lbLoad();
+document.getElementById('lbSaveBtn').addEventListener('click',function(){
+  if(!pendingScore)return;
+  var name=document.getElementById('lbName').value.trim()||'ACE';
+  lbAddEntry(name,pendingScore.score,pendingScore.dist,pendingScore.level);
+  lbRender(name);
+  document.getElementById('lbNameRow').style.display='none';
+  pendingScore=null;
+});
+document.getElementById('lbName').addEventListener('keydown',function(e){
+  if(e.key==='Enter'){document.getElementById('lbSaveBtn').click();}
+});
+document.getElementById('lbCloseBtn').addEventListener('click',function(){
+  hideLeaderboard();
+  if(!AC)initAudio();
+  startGame();
+});
+document.getElementById('lbViewBtn').addEventListener('click',function(){
+  lbLoad();showLeaderboard();
+});
+// Also add a leaderboard button to start screen close
+document.getElementById('startBtn').addEventListener('click',function(){if(!AC)initAudio();startGame();});
 
 // ── COLOURS ───────────────────────────────────────────────────
 var C={skyT:'#0e7ac8',skyB:'#4ec8f8',skyH:'#88deff',sandL:'#daa84a',sandD:'#b87828',sandFar:'#c89438',roadD:'#7a6248',roadL:'#908060',shoulder:'#a88040',mesaA:'#a04c14',mesaB:'#be6820',mesaC:'#d07830',mesaTop:'#e8a850',cactus:'#1e8818',cactusD:'#0e5808',cactusL:'#38aa28',scrub:'#2e6018',truckBody:'#3a2e1a',truckBodyL:'#5a4830',truckBodyS:'#281e0e',truckBin:'#586858',truckBinL:'#788a78',truckBinD:'#3e4e3e',truckBinS:'#2a362a',truckLid:'#6e807a',truckLidH:'#9ab0aa',truckRust:'#8a3c10',truckRust2:'#c05820',wheel:'#0e0e0e',wheelRim:'#484848',wheelH:'#707070'};
@@ -409,7 +604,6 @@ function w2s(wx,si){
 
 document.addEventListener('keydown',function(e){keys[e.code]=true;if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].indexOf(e.code)>=0)e.preventDefault();});
 document.addEventListener('keyup',function(e){keys[e.code]=false;});
-document.getElementById('startBtn').addEventListener('click',function(){if(!AC)initAudio();startGame();});
 
 function spawnScenery(){
   for(var si=0;si<2;si++){
@@ -443,7 +637,7 @@ function update(dt){
   var d=getDiff(dist);curCurveMax=d.curveMax;
   document.getElementById('lvlVal').textContent=d.tier;
   var acc=keys['ArrowUp']||keys['KeyW']||touch.gas;
-  var brk=keys['ArrowDown']||keys['KeyS']||keys['Space'];
+  var brk=keys['ArrowDown']||keys['KeyS']||keys['Space']||touch.brake;
   var lft=keys['ArrowLeft']||keys['KeyA']||touch.left;
   var rgt=keys['ArrowRight']||keys['KeyD']||touch.right;
   var sht=keys['KeyZ']||keys['ShiftLeft']||keys['ShiftRight']||touch.fire;
@@ -941,10 +1135,7 @@ function dTruck(x,y,spdF,lean){
 
 function endGame(){
   gs='dead';if(AC&&engGain)engGain.gain.setTargetAtTime(0,AC.currentTime,0.1);
-  var ov=document.getElementById('ov');
-  ov.innerHTML='<h1>GAME OVER</h1><div class="sc">SCORE: '+Math.floor(score)+'</div><div style="color:#aaddff;font-size:clamp(11px,2.5vw,16px);margin:4px 0">Distance: '+Math.floor(dist)+'m &nbsp;&middot;&nbsp; Level: '+getDiff(dist).tier+'</div><button id="startBtn" style="margin-top:clamp(10px,2vh,18px)">PLAY AGAIN</button>';
-  ov.style.display='flex';
-  document.getElementById('startBtn').addEventListener('click',function(){if(!AC)initAudio();startGame();});
+  showLeaderboard(score,dist,getDiff(dist).tier);
 }
 
 raf=requestAnimationFrame(loop);
