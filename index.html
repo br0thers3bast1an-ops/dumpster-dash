@@ -280,8 +280,19 @@ window.addEventListener('orientationchange', function(){ setTimeout(resizeCanvas
 resizeCanvas();
 
 // ── DIFFICULTY ────────────────────────────────────────────────
-var DIFF = [[0,380,260,0.038,5],[400,280,200,0.044,6],[900,210,160,0.048,7],[1600,160,130,0.052,8],[2800,120,100,0.056,9]];
-var CURVE_DELTA = 0.013;
+var DIFF = [
+  [0,    380, 260, 0.038, 5],   // L1: easy, gentle curves
+  [400,  280, 200, 0.044, 6],   // L2
+  [900,  220, 165, 0.050, 7],   // L3: noticeable curves
+  [1600, 165, 135, 0.056, 8],   // L4
+  [2600, 130, 110, 0.064, 9],   // L5: sharper curves, road drifts
+  [3800, 100,  90, 0.073,10],   // L6: fast obstacles, tight gaps
+  [5400,  80,  75, 0.082,11],   // L7: very aggressive curves
+  [7200,  65,  60, 0.090,12],   // L8: barely any breathing room
+  [9500,  52,  48, 0.097,13],   // L9: brutal
+  [12500, 40,  38, 0.104,14],   // L10: nightmare
+];
+var CURVE_DELTA = 0.016;
 function getDiff(dist){
   var i=0;
   for(var j=DIFF.length-1;j>=0;j--){if(dist>=DIFF[j][0]){i=j;break;}}
@@ -375,7 +386,18 @@ var score,spd,dist,missiles,offT,lastT,fc;
 var roadOff,segs,objs,coins,parts,mlist,exps,scenery,flameParts;
 var px,pLean,obsTimer,curCurveMax;
 
-function mkSeg(prev,cmax){var c=(prev?prev.c:0)+(Math.random()-0.5)*CURVE_DELTA;var cm=cmax||0.045;c=Math.max(-cm,Math.min(cm,c));return{x:(prev?prev.x:0)+c*14,c:c};}
+function mkSeg(prev,cmax){
+  var c=(prev?prev.c:0)+(Math.random()-0.5)*CURVE_DELTA;
+  var cm=cmax||0.045;
+  c=Math.max(-cm,Math.min(cm,c));
+  var newX=(prev?prev.x:0)+c*14;
+  // Clamp cumulative x so road stays >= 75% on screen
+  // Allow ±118px drift from center (road half-width ~186, screen half ~320)
+  var MAX_DRIFT=118;
+  if(newX>MAX_DRIFT){newX=MAX_DRIFT;c=Math.min(0,c);}
+  if(newX<-MAX_DRIFT){newX=-MAX_DRIFT;c=Math.max(0,c);}
+  return{x:newX,c:c};
+}
 function seg(i){return segs[Math.max(0,Math.min(i,segs.length-1))];}
 function w2s(wx,si){
   if(si<0||si>=segs.length)return null;
@@ -473,8 +495,63 @@ function update(dt){
   for(var fp=0;fp<flameParts.length;fp++){var p=flameParts[fp];p.age+=dt;p.life=1-p.age/p.maxLife;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=0.95;p.vy*=0.98;}
   flameParts=flameParts.filter(function(p){return p.life>0;});
   obsTimer-=spd*dt;
-  if(obsTimer<=0&&spd>6){obsTimer=d.gapMin+Math.random()*d.gapRand;objs.push({si:58,x:RCTR+(Math.random()<0.5?-1:1)*(~~(28*SCALE)+Math.random()*~~(76*SCALE)),type:Math.random()<0.5?'barrel':'cone'});}
-  if(Math.random()<0.007)coins.push({si:54,x:RCTR+(Math.random()-0.5)*~~(200*SCALE),type:Math.random()<0.55?'eth':'btc',a:Math.random()*6.28});
+  if(obsTimer<=0&&spd>6){
+    obsTimer=d.gapMin+Math.random()*d.gapRand;
+    var tier=d.tier;
+    var laneW=~~(68*SCALE);
+    // Base obstacle
+    var side=(Math.random()<0.5?-1:1);
+    var baseX=RCTR+side*(~~(30*SCALE)+Math.random()*~~(70*SCALE));
+    var obsType=Math.random()<0.5?'barrel':'cone';
+    objs.push({si:58,x:baseX,type:obsType});
+    // L3+: occasionally spawn a hidden obstacle directly behind a pickup coin
+    if(tier>=3&&Math.random()<0.25+tier*0.04){
+      // match x closely to a recently spawned coin if any, else random lane
+      var hidX=baseX+(Math.random()-0.5)*~~(18*SCALE);
+      objs.push({si:52,x:hidX,type:Math.random()<0.6?'barrel':'cone'});
+    }
+    // L4+: double obstacle spread (two side by side, gap in middle)
+    if(tier>=4&&Math.random()<0.18+tier*0.03){
+      objs.push({si:58,x:RCTR-side*(~~(30*SCALE)+Math.random()*~~(50*SCALE)),type:Math.random()<0.5?'barrel':'cone'});
+    }
+    // L5+: staggered trail (obstacle slightly behind main one)
+    if(tier>=5&&Math.random()<0.22+tier*0.03){
+      objs.push({si:52,x:baseX+(Math.random()-0.5)*~~(28*SCALE),type:'cone'});
+    }
+    // L6+: triple cluster in same lane
+    if(tier>=6&&Math.random()<0.20){
+      objs.push({si:56,x:baseX+(Math.random()-0.5)*~~(20*SCALE),type:'barrel'});
+      objs.push({si:50,x:baseX+(Math.random()-0.5)*~~(24*SCALE),type:'cone'});
+    }
+    // L7+: wide blockade (three across road)
+    if(tier>=7&&Math.random()<0.15){
+      objs.push({si:58,x:RCTR,type:'barrel'});
+      objs.push({si:57,x:RCTR-~~(55*SCALE),type:'cone'});
+      objs.push({si:57,x:RCTR+~~(55*SCALE),type:'cone'});
+    }
+    // L8+: obstacle right in curve apex (nasty trap)
+    if(tier>=8&&Math.random()<0.25){
+      // place it near the road center so player must react on curve
+      objs.push({si:44,x:RCTR+(Math.random()-0.5)*~~(40*SCALE),type:'barrel'});
+    }
+    // L9+: rapid-fire mini burst (3 obstacles close together)
+    if(tier>=9&&Math.random()<0.30){
+      for(var bi=0;bi<3;bi++){
+        objs.push({si:58-bi*4,x:RCTR+(Math.random()-0.5)*laneW,type:bi%2===0?'barrel':'cone'});
+      }
+      obsTimer*=0.6; // shorter gap after burst
+    }
+  }
+  // Coin spawn: more frequent at higher levels (player needs ammo)
+  var coinRate=0.007+d.tier*0.0008;
+  if(Math.random()<coinRate){
+    var coinX=RCTR+(Math.random()-0.5)*~~(180*SCALE);
+    coins.push({si:54,x:coinX,type:Math.random()<0.55?'eth':'btc',a:Math.random()*6.28});
+    // L5+: occasionally spawn a coin cluster (2-3 in a line)
+    if(d.tier>=5&&Math.random()<0.3){
+      coins.push({si:48,x:coinX+(Math.random()-0.5)*~~(30*SCALE),type:'eth',a:Math.random()*6.28});
+    }
+  }
   while(roadOff>8){roadOff-=8;segs.shift();segs.push(mkSeg(segs[segs.length-1],curCurveMax));for(var io=0;io<objs.length;io++)objs[io].si--;objs=objs.filter(function(o){return o.si>0;});for(var ic=0;ic<coins.length;ic++)coins[ic].si--;coins=coins.filter(function(c){return c.si>0;});}
   for(var im=mlist.length-1;im>=0;im--){var m=mlist[im];m.y+=m.vy*dt;m.x+=m.vx*dt;if(m.y<HY){mlist.splice(im,1);continue;}for(var jo=objs.length-1;jo>=0;jo--){var op=w2s(objs[jo].x,objs[jo].si);if(op&&Math.abs(m.x-op.x)<~~(28*SCALE)&&Math.abs(m.y-op.y)<~~(30*SCALE)){boom(op.x,op.y);objs.splice(jo,1);mlist.splice(im,1);score+=80;break;}}}
   for(var io2=0;io2<objs.length;io2++){var op2=w2s(objs[io2].x,objs[io2].si);if(op2&&op2.y>PY-~~(24*SCALE)&&op2.y<PY+~~(26*SCALE)&&Math.abs(px-op2.x)<~~(33*SCALE)){sfxCrash();endGame();return;}}
