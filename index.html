@@ -7,12 +7,25 @@
 <meta name="mobile-web-app-capable" content="yes">
 <title>Dumpster Dash</title>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
+*{
+  box-sizing:border-box;margin:0;padding:0;
+  /* Kill text selection everywhere */
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  -ms-user-select:none;
+  user-select:none;
+  /* Kill iOS long-press callout (copy/paste menu, link preview) */
+  -webkit-touch-callout:none;
+  /* Kill tap highlight flash on all elements */
+  -webkit-tap-highlight-color:transparent;
+}
 html,body{
   background:#000;
   width:100%;height:100%;
   overflow:hidden;
   font-family:'Courier New',monospace;
+  /* Prevent double-tap zoom on the whole page */
+  touch-action:manipulation;
 }
 #wrap{
   position:relative;
@@ -30,6 +43,7 @@ html,body{
   min-height:0;
   image-rendering:pixelated;
   image-rendering:crisp-edges;
+  touch-action:none;
 }
 
 /* HUD */
@@ -193,6 +207,11 @@ html,body{
   font-family:'Courier New',monospace;font-size:clamp(13px,3vw,18px);
   padding:6px 14px;text-align:center;width:clamp(160px,40vw,240px);
   outline:none;letter-spacing:2px;text-transform:uppercase;
+  /* Re-enable text input interaction for the name field */
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-touch-callout:default;
+  touch-action:auto;
 }
 #lbName::placeholder{color:rgba(0,255,255,0.35);}
 #lbSaveBtn,#lbCloseBtn,#lbViewBtn{
@@ -386,6 +405,15 @@ function resizeCanvas(){
 }
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', function(){ setTimeout(resizeCanvas, 200); });
+
+// Prevent rubber-band scroll / page scroll on touch devices
+document.addEventListener('touchmove', function(e){ e.preventDefault(); }, {passive:false});
+
+// iOS Safari suspends AudioContext when the app is backgrounded.
+// Resume it on any user interaction so sound comes back automatically.
+document.addEventListener('touchstart', function(){
+  if(AC && AC.state === 'suspended') AC.resume();
+}, {passive:true});
 resizeCanvas();
 
 // ── DIFFICULTY ────────────────────────────────────────────────
