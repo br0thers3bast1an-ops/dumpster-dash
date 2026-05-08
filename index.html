@@ -871,17 +871,34 @@ function render(){
     if(e.t<0.15){ctx.globalAlpha=(0.15-e.t)/0.15*0.6;ctx.fillStyle='#ffeeaa';ctx.beginPath();ctx.arc(~~e.x,~~e.y,er*0.8,0,Math.PI*2);ctx.fill();}
     ctx.globalAlpha=1;
   }
-  // Missiles
+  // Missiles - straight up, no rotation
   for(var im2=0;im2<mlist.length;im2++){
-    var mis=mlist[im2];ctx.save();ctx.translate(~~mis.x,~~mis.y);ctx.rotate(-0.08*Math.PI);
-    var ms=SCALE;
-    ctx.fillStyle='#ff8800';ctx.fillRect(~~(-4*ms),~~(10*ms),~~(8*ms),~~(13*ms));
-    ctx.fillStyle='#ffee00';ctx.fillRect(~~(-3*ms),~~(10*ms),~~(6*ms),~~(9*ms));
-    ctx.fillStyle='#fff';ctx.fillRect(~~(-1.5*ms),~~(10*ms),~~(3*ms),~~(5*ms));
-    ctx.fillStyle='#ccc';ctx.fillRect(~~(-5*ms),~~(-13*ms),~~(10*ms),~~(23*ms));
-    ctx.fillStyle='#ff2200';ctx.beginPath();ctx.moveTo(0,~~(-20*ms));ctx.lineTo(~~(-5*ms),~~(-13*ms));ctx.lineTo(~~(5*ms),~~(-13*ms));ctx.closePath();ctx.fill();
-    ctx.fillStyle='#888';ctx.fillRect(~~(-8*ms),~~(5*ms),~~(4*ms),~~(10*ms));ctx.fillRect(~~(4*ms),~~(5*ms),~~(4*ms),~~(10*ms));
-    ctx.restore();
+    var mis=mlist[im2];
+    var mx=~~mis.x, my=~~mis.y, ms=SCALE;
+    // Exhaust flame (bottom, flickers)
+    var flk=(fc%2===0?1:-1)*~~(1*ms);
+    ctx.globalAlpha=0.85;
+    ctx.fillStyle='#ff6600';ctx.fillRect(mx-~~(3*ms),my+~~(10*ms)+flk,~~(6*ms),~~(7*ms));
+    ctx.fillStyle='#ffcc00';ctx.fillRect(mx-~~(2*ms),my+~~(10*ms)+flk,~~(4*ms),~~(5*ms));
+    ctx.fillStyle='#ffffff';ctx.fillRect(mx-~~(1*ms),my+~~(10*ms)+flk,~~(2*ms),~~(3*ms));
+    ctx.globalAlpha=1;
+    // Body
+    ctx.fillStyle='#aaaaaa';ctx.fillRect(mx-~~(5*ms),my-~~(12*ms),~~(10*ms),~~(22*ms));
+    // Body highlight (left edge)
+    ctx.fillStyle='#dddddd';ctx.fillRect(mx-~~(5*ms),my-~~(12*ms),~~(2*ms),~~(22*ms));
+    // Body shadow (right edge)
+    ctx.fillStyle='#777777';ctx.fillRect(mx+~~(3*ms),my-~~(12*ms),~~(2*ms),~~(22*ms));
+    // Nose cone
+    ctx.fillStyle='#ff2200';
+    ctx.beginPath();ctx.moveTo(mx,my-~~(20*ms));ctx.lineTo(mx-~~(5*ms),my-~~(12*ms));ctx.lineTo(mx+~~(5*ms),my-~~(12*ms));ctx.closePath();ctx.fill();
+    // Nose highlight
+    ctx.fillStyle='#ff6644';ctx.beginPath();ctx.moveTo(mx,my-~~(20*ms));ctx.lineTo(mx-~~(5*ms),my-~~(12*ms));ctx.lineTo(mx-~~(2*ms),my-~~(12*ms));ctx.closePath();ctx.fill();
+    // Fins (left and right, at base of body)
+    ctx.fillStyle='#888888';
+    ctx.beginPath();ctx.moveTo(mx-~~(5*ms),my+~~(6*ms));ctx.lineTo(mx-~~(10*ms),my+~~(10*ms));ctx.lineTo(mx-~~(5*ms),my+~~(10*ms));ctx.closePath();ctx.fill();
+    ctx.beginPath();ctx.moveTo(mx+~~(5*ms),my+~~(6*ms));ctx.lineTo(mx+~~(10*ms),my+~~(10*ms));ctx.lineTo(mx+~~(5*ms),my+~~(10*ms));ctx.closePath();ctx.fill();
+    // Center seam line
+    ctx.fillStyle='#999999';ctx.fillRect(mx-~~(1*ms),my-~~(12*ms),~~(2*ms),~~(22*ms));
   }
   // Speed lines
   if(spd>85){var a=((spd-85)/105)*0.45;ctx.globalAlpha=a;ctx.strokeStyle='#fff';ctx.lineWidth=1;for(var il=0;il<16;il++){var lx=20+((il*83+fc*9)%(W-40)),ly2=HY+8+((il*31+fc*4)%(PY-HY-10)),ln=~~(8+((il*17)%28)*SCALE);ctx.beginPath();ctx.moveTo(lx,ly2);ctx.lineTo(lx,ly2+ln);ctx.stroke();}ctx.globalAlpha=1;}
