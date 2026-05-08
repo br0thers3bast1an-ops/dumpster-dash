@@ -764,13 +764,14 @@ function update(dt){
       obsTimer*=0.6; // shorter gap after burst
     }
   }
-  // Coin spawn: more frequent at higher levels (player needs ammo)
+  // Coin spawn: requires movement and caps total on screen
+  var MAX_COINS=8;
   var coinRate=0.007+d.tier*0.0008;
-  if(Math.random()<coinRate){
+  if(spd>10&&coins.length<MAX_COINS&&Math.random()<coinRate){
     var coinX=RCTR+(Math.random()-0.5)*~~(180*SCALE);
     coins.push({si:54,x:coinX,type:Math.random()<0.55?'eth':'btc',a:Math.random()*6.28});
     // L5+: occasionally spawn a coin cluster (2-3 in a line)
-    if(d.tier>=5&&Math.random()<0.3){
+    if(d.tier>=5&&coins.length<MAX_COINS&&Math.random()<0.3){
       coins.push({si:48,x:coinX+(Math.random()-0.5)*~~(30*SCALE),type:'eth',a:Math.random()*6.28});
     }
   }
